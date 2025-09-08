@@ -1,0 +1,43 @@
+﻿<Window x:Class="Lab1_RPM2.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Lab1_RPM2"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <ScrollViewer>
+            <ListBox x:Name="listBox" HorizontalContentAlignment="Stretch">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="Black" BorderThickness="1" Margin="10" Padding="5">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition></ColumnDefinition>
+                                    <ColumnDefinition></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock FontSize="20" Text="{Binding Partner.TypePartner}"/>
+                                        <TextBlock FontSize="20" Text=" | "/>
+                                        <TextBlock FontSize="20" Text="{Binding Partner.TitlePa}"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding Partner.Director}"/>
+                                    <TextBlock Text="{Binding Partner.PhoneNumber}"/>
+                                    <TextBlock Text="{Binding Partner.Rating}"/>
+                                </StackPanel>
+                                <TextBlock Grid.Column="1" 
+           FontSize="20" 
+           Text="{Binding Discount}" 
+           TextAlignment="Right" 
+           VerticalAlignment="Center"
+           Margin="10,0,0,0"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate> 
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </ScrollViewer>
+    </Grid>
+</Window>

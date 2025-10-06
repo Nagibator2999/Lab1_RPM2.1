@@ -1,4 +1,6 @@
-﻿using Lab1_RPM2.Models;
+﻿using Lab1_RPM2.Data;
+using Lab1_RPM2.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -12,8 +14,9 @@ namespace Lab1_RPM2.ViewModel
 {
     public class MainViewModel : INotifyPropertyChanged
     {
-        private ObservableCollection<Partner> _partners;
+        private readonly AppDBContext _context = new AppDBContext();
 
+        private ObservableCollection<Partner> _partners;
         public ObservableCollection<Partner> Partners
         {
             get => _partners;
@@ -26,32 +29,63 @@ namespace Lab1_RPM2.ViewModel
 
         public MainViewModel()
         {
-            LoadPartnersWithSalesByInn();
+            LoadPartners();
         }
 
-        private void LoadPartnersWithSalesByInn()
+        private void LoadPartners()
         {
-            using var context = new PartnerContext();      
+            var partners = _context.Partners
+                .Include(p => p.ProductPartners)
+                .ToList();
 
-            var partners = context.Partners.ToList();
+            Partners = new ObservableCollection<Partner>((IEnumerable<Partner>)partners);
+        }
 
-            foreach (var partner in partners)
-            {
-                var totalSales = context.ProductPartners
-                    .Where(pp => pp.Inn == partner.Inn) 
-                    .Sum(pp => pp.Quantity);
+        public void AddPartner(Partner newPartner)
+        {
+            _context.Partners.Add(newPartner);
+            _context.SaveChanges();
 
-                partner.TotalSales = totalSales;
-            }
-
-            Partners = new ObservableCollection<Partner>(partners);
+            Partners.Add(newPartner);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-
         protected virtual void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        public void Dispose()
+        {
+            _context?.Dispose();
+        }
+        //private ObservableCollection<Partner> _partners;
+
+        //public ObservableCollection<Partner> Partners
+        //{
+        //    get => _partners;
+        //    set
+        //    {
+        //        _partners = value;
+        //        OnPropertyChanged(nameof(Partners));
+        //    }
+        //}
+
+        //public MainViewModel()
+        //{
+        //    LoadPartnersWithSalesByInn();
+        //}
+
+        //private void LoadPartnersWithSalesByInn()
+        //{
+        //    using var context = new AppDBContext();         
+        //}
+
+        //public event PropertyChangedEventHandler PropertyChanged;
+
+        //protected virtual void OnPropertyChanged(string propertyName)
+        //{
+        //    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        //}
     }
 }

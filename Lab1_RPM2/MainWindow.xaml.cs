@@ -1,5 +1,7 @@
 ﻿using Lab1_RPM2.Data;
 using Lab1_RPM2.Models;
+using Lab1_RPM2.View;
+using Lab1_RPM2.ViewModel;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using System.Text;
@@ -20,49 +22,86 @@ namespace Lab1_RPM2
     /// </summary>
     public partial class MainWindow : Window
     {
-        AppDBContext context = new AppDBContext();
+        private MainViewModel _viewModel;
 
         public MainWindow()
         {
             InitializeComponent();
-            context.Partners.Load();
-            listBox.ItemsSource = context.Partners.Local.Select(p => new {
-                 Partner = p,
-            Discount = CalculateDiscount(p)
-        }).ToList(); 
+            _viewModel = new MainViewModel();
+            DataContext = _viewModel;
         }
 
-        //private int CalculateDiscount(Partner partner)
-        //{
-        //    return 0;
-            
-        //}
-        private double _totalSales;
-        public double TotalSales
+        private void AddPartnerButton_Click(object sender, RoutedEventArgs e)
         {
-            get => _totalSales;
-            set
+            var dialog = new AddPartnerWindow();
+            if (dialog.ShowDialog() == true)
             {
-                _totalSales = value;
-                OnPropertyChanged(nameof(DiscountDisplay));
+                var newPartner = ((AddPartnerViewModel)dialog.DataContext).Partner;
+                _viewModel.AddPartner(newPartner);
             }
         }
 
-        public string DiscountDisplay => $"{CalculateDiscount()}%";
-
-        private int CalculateDiscount(Partner partner)
+        protected override void OnClosed(EventArgs e)
         {
-            if (TotalSales < 10_000) return 0;
-            if (TotalSales < 50_000) return 5;
-            if (TotalSales < 300_000) return 10;
-            return 15;
+            _viewModel?.Dispose();
+            base.OnClosed(e);
         }
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
+        private void ShowHistory_Click(object sender, RoutedEventArgs e)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            if (listBox.SelectedItem is Partner p)
+            {
+                new HistoryPartnerWindow(p).ShowDialog();
+            }
+            else
+            {
+                MessageBox.Show("Выберите партнёра.");
+            }
+        }
+        //private void DeletePartnerButton_Click(object sender, RoutedEventArgs e)
+        //{
+        //    if (listBox.SelectedItem is Partner selectedItem)
+        //    {
+
+        //        using var db = new AppDBContext();
+        //        var itemToDelete = db.Partners.FirstOrDefault(i => i.Inn == selectedItem.Inn);
+        //        if (itemToDelete != null)
+        //        {
+        //            db.Partners.Remove(itemToDelete);
+        //            db.SaveChanges();
+        //            LoadPartner();
+        //        }
+        //    }
+        //    else
+        //    {
+        //        MessageBox.Show(
+        //            "Пожалуйста, выберите партнера для удаления",
+        //            "Не выбрана запись",
+        //            MessageBoxButton.OK,
+        //            MessageBoxImage.Warning);
+        //    }
+        //}
+
+        private void listBox_Selected(object sender, RoutedEventArgs e)
+        {
+
         }
 
+        private void listBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            //listBox.SelectedItem = null;
+        }
+        private void listBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (listBox.SelectedItem is Partner selectedPartner)
+            {
+                var editWindow = new AddEditPartner(selectedPartner);
+                if (editWindow.ShowDialog() == true)
+                {
+                    using var context = new AppDBContext();
+                    context.Partners.Update(selectedPartner);
+                    context.SaveChanges();
+                }
+            }
+        }
     }
 }
